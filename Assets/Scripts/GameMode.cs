@@ -57,7 +57,7 @@ public class NetworkPlayer : NetworkBehaviour
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     private void RPC_SetPlayerColor(Color color)
     {
-        if (HasInputAuthority)
+        if (HasStateAuthority)
         {
             this.PlayerColor = color;
         }
