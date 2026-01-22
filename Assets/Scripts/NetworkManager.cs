@@ -15,7 +15,7 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
     private NetworkRunner _networkRunner;
     #endregion
 
-    public async void StartGame(GameMode game)
+    async void StartGame(GameMode game)
     {
         _networkRunner = this.gameObject.AddComponent<NetworkRunner>();
         _networkRunner.ProvideInput = true;
@@ -47,15 +47,16 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
     public void OnInput(NetworkRunner runner, NetworkInput input)
     {
         var data = new NetworkInputData();
-        data.InputVector = new Vector2(Input.GetAxis)
+        data.InputVector = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+        input.Set(data);
     }
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
         if (runner.IsServer)
         {
-            Vector3 position = Vector3.zero;
-            NetworkObject networkObject = runner.Spawn(playerPrefab, position, Quaternion.identity, player);
+            var position = Vector3.zero;
+            var networkObject = runner.Spawn(playerPrefab, position, Quaternion.identity, player);
 
             _spawnedCharacters.Add(player, networkObject);
         }
@@ -64,8 +65,9 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
     {
         if (!_spawnedCharacters.TryGetValue(player, out var playerObject)) return;
-            runner.Despawn(playerObject);
-            _spawnedCharacters.Remove(player);
+
+        runner.Despawn(playerObject);
+        _spawnedCharacters.Remove(player);
     }
 
     #region Unused Fusion Callbacks

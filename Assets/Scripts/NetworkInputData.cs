@@ -1,6 +1,6 @@
 using UnityEngine;
 using Fusion;
-public struct NetworkInputData : NetworkInput
+public struct NetworkInputData : INetworkInput
 {
-    public Vector2 
+    public Vector2 InputVector;
 }
