@@ -75,20 +75,15 @@ public class NetworkSessionManager : MonoBehaviour, INetworkRunnerCallbacks
     {
         if (runner.IsServer)
         {
-            On
-            var position = new Vector3(0, 1, 0);
-            var networkObject = runner.Spawn(playerPrefab, position, Quaternion.identity, player);
-            _spawnedCharacters.Add(player, networkObject);
+            JoinedPlayers.Add(player);
+            OnPlayerJoinedEvent?.Invoke(player);
         }
     }
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
     {
-        if (_spawnedCharacters.TryGetValue(player, out var playerObject))
-        {
-            runner.Despawn(playerObject);
-            _spawnedCharacters.Remove(player);
-        }
+        JoinedPlayers.Remove(player);
+        OnPlayerLeftEvent?.Invoke(player);
     }
 
     public void OnInput(NetworkRunner runner, NetworkInput input)
