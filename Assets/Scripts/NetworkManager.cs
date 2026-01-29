@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
 
-public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
+public class NetworkSessionManager : MonoBehaviour, INetworkRunnerCallbacks
 {
     #region Public Variables
     [Header("Spawning")]
@@ -21,7 +21,15 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
     #region Private Variables
     private Dictionary<PlayerRef, NetworkObject> _spawnedCharacters = new Dictionary<PlayerRef, NetworkObject>();
     private NetworkRunner _networkRunner;
+
+    private List<PlayerRef> _joinedPlayers = new();
+
+    public IReadOnlyList<PlayerRef> JoinedPlayers => _joinedPlayers;
+    public event Action<PlayerRef> OnPlayerJoinedEvent;
+    public event Action<PlayerRef> OnPlayerLeftEvent;
     #endregion
+
+
 
     public static string LocalPlayerName;
     public static Color LocalPlayerColor;
@@ -67,6 +75,7 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
     {
         if (runner.IsServer)
         {
+            On
             var position = new Vector3(0, 1, 0);
             var networkObject = runner.Spawn(playerPrefab, position, Quaternion.identity, player);
             _spawnedCharacters.Add(player, networkObject);
