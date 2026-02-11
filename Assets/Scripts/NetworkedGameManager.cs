@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Collections;
 using Fusion;
 using TMPro;
 using UnityEngine;
@@ -12,20 +11,17 @@ namespace Network
         [SerializeField] private NetworkPrefabRef playerPrefab;
         [SerializeField] private TextMeshProUGUI _playerCountText;
         [SerializeField] private TextMeshProUGUI _timerCountText;
+
+        [Header("Spawn Points")]
         [SerializeField] private Transform[] team1Spawns;
         [SerializeField] private Transform[] team2Spawns;
 
         private Dictionary<PlayerRef, NetworkObject> _spawnedCharacters = new();
+        private const int maxPlayers = 2;
+        private const int timerBeforeStart = 3;
+        private bool hasGameStarted = false;
 
-        [Header("Settings")]
-        [SerializeField] private int maxPlayers = 2;
-        [SerializeField] private int timerBeforeStart = 3;
-
-        #region Networked Properties
-        [Networked] public int NetworkedPlayerCount { get; set; }
         [Networked] public TickTimer RoundStartTimer { get; set; }
-        [Networked] public NetworkBool GameHasStarted { get; set; }
-        #endregion
 
         public override void Spawned()
         {
@@ -33,53 +29,31 @@ namespace Network
             NetworkSessionManager.Instance.OnPlayerLeftEvent += OnPlayerLeft;
         }
 
-        public override void Despawned(NetworkRunner runner, bool hasState)
-        {
-            if (NetworkSessionManager.Instance != null)
-            {
-                NetworkSessionManager.Instance.OnPlayerJoinedEvent -= OnPlayerJoined;
-                NetworkSessionManager.Instance.OnPlayerLeftEvent -= OnPlayerLeft;
-            }
-        }
-
         public override void FixedUpdateNetwork()
         {
-            if (HasStateAuthority)
+            if (RoundStartTimer.Expired(Runner))
             {
-                NetworkedPlayerCount = Runner.ActivePlayers.Count();
-
-                if (!GameHasStarted && RoundStartTimer.Expired(Runner) && RoundStartTimer.IsRunning)
-                {
-                    GameHasStarted = true;
-                    OnGameStarted();
-                }
+                RoundStartTimer = default;
+                OnGameStarted();
             }
         }
 
         public override void Render()
         {
             if (_playerCountText != null)
-                _playerCountText.text = $"Players: {NetworkedPlayerCount}/{maxPlayers}";
+                _playerCountText.text = $"Players: {Runner.ActivePlayers.Count()}/{maxPlayers}";
 
             if (RoundStartTimer.IsRunning)
-            {
-                float? remaining = RoundStartTimer.RemainingTime(Runner);
-                _timerCountText.text = remaining.HasValue ? Mathf.CeilToInt(remaining.Value).ToString() : "";
-            }
+                _timerCountText.text = Mathf.CeilToInt(RoundStartTimer.RemainingTime(Runner) ?? 0).ToString();
             else
-            {
                 _timerCountText.text = "";
-            }
         }
 
         private void OnPlayerJoined(PlayerRef player)
         {
             if (!HasStateAuthority) return;
-
-            if (Runner.ActivePlayers.Count() >= maxPlayers && !GameHasStarted)
-            {
+            if (NetworkSessionManager.Instance.JoinedPlayers.Count >= maxPlayers)
                 RoundStartTimer = TickTimer.CreateFromSeconds(Runner, timerBeforeStart);
-            }
         }
 
         private void OnPlayerLeft(PlayerRef player)
@@ -94,27 +68,30 @@ namespace Network
 
         private void OnGameStarted()
         {
-            foreach (var playerRef in Runner.ActivePlayers)
+            if (hasGameStarted) return;
+            hasGameStarted = true;
+
+            int i = 0;
+            foreach (var playerRef in NetworkSessionManager.Instance.JoinedPlayers)
             {
-                if (playerRef == Runner.LocalPlayer && Runner.IsServer) continue;
+                int assignedTeam = (i % 2 == 0) ? 1 : 2;
+                Transform[] selectedSpawnList = (assignedTeam == 1) ? team1Spawns : team2Spawns;
 
-                NetworkObject NO = Runner.Spawn(playerPrefab, Vector3.zero, Quaternion.identity, playerRef);
-                _spawnedCharacters.Add(playerRef, NO);
-                StartCoroutine(PositionPlayer(NO));
+                Transform selectedSpawn = selectedSpawnList[Random.Range(0, selectedSpawnList.Length)];
+
+                var networkObject = Runner.Spawn(playerPrefab, selectedSpawn.position, selectedSpawn.rotation, playerRef);
+
+                var playerScript = networkObject.GetComponent<NetworkPlayer>();
+                if (playerScript != null)
+                {
+                    playerScript.NetworkedPosition = selectedSpawn.position;
+                    playerScript.NetworkedRotation = selectedSpawn.rotation;
+                    playerScript.TeamID = assignedTeam;
+                }
+
+                _spawnedCharacters.Add(playerRef, networkObject);
+                i++;
             }
-        }
-
-        private IEnumerator PositionPlayer(NetworkObject obj)
-        {
-            yield return new WaitForSeconds(0.2f);
-            NetworkPlayer script = obj.GetComponent<NetworkPlayer>();
-
-            Transform spawnPoint = script.TeamID == 1
-                ? team1Spawns[Random.Range(0, team1Spawns.Length)]
-                : team2Spawns[Random.Range(0, team2Spawns.Length)];
-
-            obj.transform.position = spawnPoint.position;
-            script.NetworkedPosition = spawnPoint.position;
         }
     }
 }

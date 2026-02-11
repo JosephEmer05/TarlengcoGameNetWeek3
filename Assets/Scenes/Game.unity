@@ -1146,18 +1146,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerPrefab:
-    RawGuidValue: 32d3a1d020d51c94e961b63af8ef8ad6
+    RawGuidValue: 4fbea9f6d501c5e41810687d36f7454a
   _playerCountText: {fileID: 1051347522}
   _timerCountText: {fileID: 555669332}
   team1Spawns:
   - {fileID: 1607410804}
   team2Spawns:
   - {fileID: 1810343014}
-  maxPlayers: 2
-  timerBeforeStart: 3
-  _NetworkedPlayerCount: 0
-  _GameHasStarted:
-    _value: 0
 --- !u!4 &1597775519
 Transform:
   m_ObjectHideFlags: 0
@@ -1198,7 +1193,7 @@ Transform:
   m_GameObject: {fileID: 1607410803}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -5, y: 1, z: 0}
+  m_LocalPosition: {x: -5, y: 1.99, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1230,7 +1225,7 @@ Transform:
   m_GameObject: {fileID: 1810343013}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5, y: 1, z: 0}
+  m_LocalPosition: {x: 5, y: 1.99, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1340,7 +1335,7 @@ Transform:
   m_GameObject: {fileID: 1885317544}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.9999999, z: 0}
   m_LocalScale: {x: 5, y: 5, z: 5}
   m_ConstrainProportionsScale: 1
   m_Children: []

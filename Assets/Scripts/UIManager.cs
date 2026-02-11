@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using Network;
 
 public class UIManager : MonoBehaviour
 {
